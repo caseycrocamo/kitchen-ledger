@@ -5,6 +5,7 @@ import path from 'node:path';
 import express, { type ErrorRequestHandler } from 'express';
 import multer, { MulterError } from 'multer';
 
+import { createAnalyticsRouter } from './routes/analytics';
 import { createItemsRouter } from './routes/items';
 import { createTagsRouter } from './routes/tags';
 
@@ -42,6 +43,7 @@ app.use(express.json());
 app.use('/api/uploads', express.static(UPLOADS_DIR));
 app.use('/api/items', createItemsRouter(upload));
 app.use('/api/tags', createTagsRouter());
+app.use('/api/analytics', createAnalyticsRouter());
 
 const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   if (err instanceof MulterError) {

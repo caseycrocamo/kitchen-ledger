@@ -5,6 +5,7 @@ import { Router, type Request, type Response } from 'express';
 import type { Multer } from 'multer';
 
 import db from '../db';
+import { addBatch, nowSql, removeFromBatches } from '../servingBatches';
 import { getTagsForItems, setItemTags } from '../tags';
 import type { Item } from '../types';
 
@@ -107,6 +108,7 @@ export function createItemsRouter(upload: Multer): Router {
         .run(name.trim(), servings, imageFilename);
       const id = Number(result.lastInsertRowid);
       setItemTags(id, tags);
+      if (servings > 0) addBatch(id, servings, nowSql());
       return id;
     })();
 
@@ -149,12 +151,14 @@ export function createItemsRouter(upload: Multer): Router {
       newTags = tags;
     }
 
+    let servingsDelta = 0;
     if (body.servings !== undefined) {
       const parsed = parseServings(body.servings);
       if (parsed === null) {
         res.status(400).json({ error: 'servings must be a non-negative integer' });
         return;
       }
+      servingsDelta = parsed - existing.servings;
       updates.push('servings = ?');
       values.push(parsed);
     }
@@ -174,8 +178,11 @@ export function createItemsRouter(upload: Multer): Router {
     updates.push('updated_at = CURRENT_TIMESTAMP');
 
     db.transaction(() => {
+      const now = nowSql();
       db.prepare(`UPDATE items SET ${updates.join(', ')} WHERE id = ?`).run(...values, id);
       if (newTags) setItemTags(id, newTags);
+      if (servingsDelta > 0) addBatch(id, servingsDelta, now);
+      else if (servingsDelta < 0) removeFromBatches(id, -servingsDelta, now, { log: false });
     })();
 
     res.json(getItemById(id));
@@ -194,14 +201,28 @@ export function createItemsRouter(upload: Multer): Router {
       return;
     }
 
-    const result = db
-      .prepare(
-        `UPDATE items SET servings = MAX(0, servings + ?), updated_at = CURRENT_TIMESTAMP
-         WHERE id = ?`,
-      )
-      .run(delta, id);
+    const changed = db.transaction(() => {
+      const now = nowSql();
+      const existing = db.prepare('SELECT servings FROM items WHERE id = ?').get(id) as
+        | { servings: number }
+        | undefined;
+      if (!existing) return 0;
 
-    if (result.changes === 0) {
+      const result = db
+        .prepare(
+          `UPDATE items SET servings = MAX(0, servings + ?), updated_at = CURRENT_TIMESTAMP
+           WHERE id = ?`,
+        )
+        .run(delta, id);
+
+      const actualDelta = Math.max(0, existing.servings + delta) - existing.servings;
+      if (actualDelta > 0) addBatch(id, actualDelta, now);
+      else if (actualDelta < 0) removeFromBatches(id, -actualDelta, now, { log: true });
+
+      return result.changes;
+    })();
+
+    if (changed === 0) {
       res.status(404).json({ error: 'item not found' });
       return;
     }

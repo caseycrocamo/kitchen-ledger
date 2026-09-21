@@ -1,4 +1,4 @@
-import type { Item } from './types'
+import type { AgePerDay, Insight, Item, ServingsPerDay } from './types'
 
 export interface ItemInput {
   name: string
@@ -85,4 +85,16 @@ export function updateServings(id: number, delta: number): Promise<{ servings: n
 
 export function deleteItem(id: number): Promise<void> {
   return request<void>(`/api/items/${id}`, { method: 'DELETE' })
+}
+
+export function fetchServingsPerDay(days?: number): Promise<ServingsPerDay[]> {
+  return request<ServingsPerDay[]>(`/api/analytics/servings-per-day${days ? `?days=${days}` : ''}`)
+}
+
+export function fetchAgePerDay(days?: number): Promise<AgePerDay[]> {
+  return request<AgePerDay[]>(`/api/analytics/age-per-day${days ? `?days=${days}` : ''}`)
+}
+
+export function fetchInsights(): Promise<Insight[]> {
+  return request<Insight[]>('/api/analytics/insights')
 }

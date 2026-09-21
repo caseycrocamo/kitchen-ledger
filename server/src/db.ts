@@ -78,4 +78,41 @@ if (hasCategory || hasLocation) {
   migrate();
 }
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS serving_batches (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    item_id INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+    quantity INTEGER NOT NULL CHECK (quantity > 0),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+db.exec(`
+  CREATE INDEX IF NOT EXISTS idx_serving_batches_item_created
+  ON serving_batches (item_id, created_at)
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS consumption_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    item_id INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+    quantity INTEGER NOT NULL CHECK (quantity > 0),
+    age_days INTEGER NOT NULL,
+    occurred_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+db.exec(`
+  CREATE INDEX IF NOT EXISTS idx_consumption_events_occurred
+  ON consumption_events (occurred_at)
+`);
+
+// Launch-day backfill: any item with servings but no batch rows yet gets one batch
+// dated "now" — a no-op on every boot after the first covers it.
+db.exec(`
+  INSERT INTO serving_batches (item_id, quantity, created_at)
+  SELECT id, servings, CURRENT_TIMESTAMP
+  FROM items
+  WHERE servings > 0
+    AND id NOT IN (SELECT DISTINCT item_id FROM serving_batches)
+`);
+
 export default db;
