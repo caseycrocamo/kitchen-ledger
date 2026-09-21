@@ -1,7 +1,8 @@
 import { useState } from 'preact/hooks'
 import type { Item } from '../types'
 import { items } from '../state'
-import { updateServings } from '../api'
+import { deleteItem, updateServings } from '../api'
+import { ConfirmModal } from './ConfirmModal'
 
 interface ItemCardProps {
   item: Item
@@ -31,6 +32,8 @@ function patchItem(id: number, patch: Partial<Item>): void {
 
 export function ItemCard({ item, onEdit }: ItemCardProps) {
   const [pending, setPending] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   async function adjustServings(delta: number) {
     if (pending) return
@@ -47,6 +50,19 @@ export function ItemCard({ item, onEdit }: ItemCardProps) {
       patchItem(item.id, { servings: previousServings })
     } finally {
       setPending(false)
+    }
+  }
+
+  async function handleDeleteConfirm() {
+    setDeleting(true)
+    try {
+      await deleteItem(item.id)
+      items.value = items.value.filter((i) => i.id !== item.id)
+      setConfirmOpen(false)
+    } catch {
+      // Leave the modal open with the item intact so the user can retry or cancel.
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -80,6 +96,7 @@ export function ItemCard({ item, onEdit }: ItemCardProps) {
             </button>
             <button
               type="button"
+              onClick={() => setConfirmOpen(true)}
               aria-label={`Delete ${item.name}`}
               class="p-1.5 rounded text-slate-400 hover:text-red-600 hover:bg-red-50"
             >
@@ -128,6 +145,17 @@ export function ItemCard({ item, onEdit }: ItemCardProps) {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        open={confirmOpen}
+        title="Delete item?"
+        message={`This will permanently remove "${item.name}" from your kitchen ledger.`}
+        confirmLabel="Delete"
+        destructive
+        busy={deleting}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </div>
   )
 }
