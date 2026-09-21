@@ -18,14 +18,11 @@ export function App() {
     <div class="min-h-screen bg-slate-50">
       <header class="bg-white border-b border-slate-200">
         <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 class="text-2xl font-bold text-slate-900">Kitchen Ledger</h1>
-            <p class="text-sm text-slate-500">Track what's in your kitchen.</p>
-          </div>
+          <h1 class="text-2xl font-bold text-slate-900">Kitchen Ledger</h1>
           <button
             type="button"
             onClick={() => setModal({ mode: 'create' })}
-            class="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+            class="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700"
           >
             + Add item
           </button>

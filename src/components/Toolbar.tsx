@@ -22,7 +22,7 @@ const LOCATION_OPTIONS: { value: 'all' | Location; label: string }[] = [
 ]
 
 function segmentClass(active: boolean) {
-  return `px-3 py-1.5 text-sm ${
+  return `px-3 py-2.5 min-h-11 text-sm ${
     active ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 hover:bg-slate-100'
   }`
 }
@@ -36,7 +36,7 @@ export function Toolbar() {
         onInput={(e) => (searchQuery.value = (e.target as HTMLInputElement).value)}
         placeholder="Search items…"
         aria-label="Search items"
-        class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm sm:max-w-xs"
+        class="w-full min-h-11 rounded-md border border-slate-300 px-3 py-2.5 text-sm sm:max-w-xs"
       />
 
       <div class="flex flex-wrap items-center gap-2">
@@ -70,7 +70,7 @@ export function Toolbar() {
           value={sortBy.value}
           onChange={(e) => (sortBy.value = (e.target as HTMLSelectElement).value as SortOption)}
           aria-label="Sort items"
-          class="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm"
+          class="rounded-md border border-slate-300 bg-white px-2 py-2.5 min-h-11 text-sm"
         >
           {SORT_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>

@@ -6,21 +6,17 @@ interface ItemListProps {
   onEdit: (item: Item) => void
 }
 
-const GRID_CLASS = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'
+const LIST_CLASS =
+  'max-w-2xl mx-auto flex flex-col divide-y divide-slate-200 rounded-lg border border-slate-200 bg-white overflow-hidden'
 const SKELETON_COUNT = 6
 
-function SkeletonCard() {
+function SkeletonRow() {
   return (
-    <div class="bg-white rounded-lg border border-slate-200 overflow-hidden animate-pulse">
-      <div class="w-full h-36 bg-slate-200" />
-      <div class="p-4 space-y-3">
-        <div class="h-4 bg-slate-200 rounded w-3/4" />
-        <div class="flex gap-2">
-          <div class="h-4 bg-slate-200 rounded-full w-14" />
-          <div class="h-4 bg-slate-200 rounded-full w-16" />
-        </div>
-        <div class="h-7 bg-slate-200 rounded w-full" />
-      </div>
+    <div class="h-16 flex items-center gap-3 px-3 animate-pulse">
+      <div class="w-11 h-11 rounded-full bg-slate-200 shrink-0" />
+      <div class="flex-1 h-4 bg-slate-200 rounded" />
+      <div class="w-8 h-8 rounded bg-slate-200 shrink-0" />
+      <div class="w-11 h-11 rounded-full bg-slate-200 shrink-0" />
     </div>
   )
 }
@@ -28,9 +24,9 @@ function SkeletonCard() {
 export function ItemList({ onEdit }: ItemListProps) {
   if (isLoading.value) {
     return (
-      <div class={GRID_CLASS}>
+      <div class={LIST_CLASS}>
         {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
-          <SkeletonCard key={i} />
+          <SkeletonRow key={i} />
         ))}
       </div>
     )
@@ -55,7 +51,7 @@ export function ItemList({ onEdit }: ItemListProps) {
   if (visibleItems.value.length === 0) {
     const hasAnyItems = items.value.length > 0
     return (
-      <div class="text-center py-16 text-slate-500">
+      <div class="max-w-2xl mx-auto text-center py-16 text-slate-500">
         <p class="text-lg font-medium">
           {hasAnyItems ? 'No items match your filters' : 'No items yet'}
         </p>
@@ -69,7 +65,7 @@ export function ItemList({ onEdit }: ItemListProps) {
   }
 
   return (
-    <div class={GRID_CLASS}>
+    <div class={LIST_CLASS}>
       {visibleItems.value.map((item) => (
         <ItemCard key={item.id} item={item} onEdit={onEdit} />
       ))}

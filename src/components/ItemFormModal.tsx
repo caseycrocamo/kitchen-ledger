@@ -207,7 +207,7 @@ export function ItemFormModal({ mode, item, onClose }: ItemFormModalProps) {
                   <button
                     type="button"
                     onClick={handleRemoveImage}
-                    class="self-start text-sm text-red-600 hover:underline"
+                    class="self-start min-h-11 flex items-center text-sm text-red-600 hover:underline"
                   >
                     Remove image
                   </button>
@@ -226,14 +226,14 @@ export function ItemFormModal({ mode, item, onClose }: ItemFormModalProps) {
             <button
               type="button"
               onClick={onClose}
-              class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              class="rounded-md border border-slate-300 px-4 py-2.5 min-h-11 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+              class="rounded-md bg-emerald-600 px-4 py-2.5 min-h-11 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
             >
               {submitting ? 'Saving…' : mode === 'create' ? 'Add item' : 'Save changes'}
             </button>
