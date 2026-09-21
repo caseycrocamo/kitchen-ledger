@@ -5,6 +5,7 @@ import { updateServings } from '../api'
 
 interface ItemCardProps {
   item: Item
+  onEdit: (item: Item) => void
 }
 
 const CATEGORY_LABEL: Record<Item['category'], string> = {
@@ -28,7 +29,7 @@ function patchItem(id: number, patch: Partial<Item>): void {
   items.value = items.value.map((i) => (i.id === id ? { ...i, ...patch } : i))
 }
 
-export function ItemCard({ item }: ItemCardProps) {
+export function ItemCard({ item, onEdit }: ItemCardProps) {
   const [pending, setPending] = useState(false)
 
   async function adjustServings(delta: number) {
@@ -69,6 +70,7 @@ export function ItemCard({ item }: ItemCardProps) {
           <div class="flex gap-1 shrink-0">
             <button
               type="button"
+              onClick={() => onEdit(item)}
               aria-label={`Edit ${item.name}`}
               class="p-1.5 rounded text-slate-400 hover:text-slate-600 hover:bg-slate-100"
             >

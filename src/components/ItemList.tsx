@@ -1,5 +1,10 @@
 import { visibleItems, isLoading, loadError, loadItems, items } from '../state'
 import { ItemCard } from './ItemCard'
+import type { Item } from '../types'
+
+interface ItemListProps {
+  onEdit: (item: Item) => void
+}
 
 const GRID_CLASS = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'
 const SKELETON_COUNT = 6
@@ -20,7 +25,7 @@ function SkeletonCard() {
   )
 }
 
-export function ItemList() {
+export function ItemList({ onEdit }: ItemListProps) {
   if (isLoading.value) {
     return (
       <div class={GRID_CLASS}>
@@ -66,7 +71,7 @@ export function ItemList() {
   return (
     <div class={GRID_CLASS}>
       {visibleItems.value.map((item) => (
-        <ItemCard key={item.id} item={item} />
+        <ItemCard key={item.id} item={item} onEdit={onEdit} />
       ))}
     </div>
   )

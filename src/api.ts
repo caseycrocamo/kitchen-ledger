@@ -1,9 +1,9 @@
-import type { Item } from './types'
+import type { Category, Item, Location } from './types'
 
 export interface ItemInput {
   name: string
-  category: Item['category']
-  location: Item['location']
+  category: Category
+  location: Location
   servings: number
   image?: File | null
 }
@@ -12,10 +12,30 @@ export interface ItemUpdateInput extends Partial<ItemInput> {
   removeImage?: boolean
 }
 
+export class ApiError extends Error {
+  status: number
+
+  constructor(message: string, status: number) {
+    super(message)
+    this.status = status
+  }
+}
+
+async function parseErrorMessage(res: Response): Promise<string> {
+  try {
+    const body = await res.json()
+    if (body && typeof body.error === 'string') return body.error
+    if (body && typeof body.message === 'string') return body.message
+  } catch {
+    // response wasn't JSON — fall through to the generic message
+  }
+  return `Request failed with status ${res.status}`
+}
+
 async function request<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
   const res = await fetch(input, init)
   if (!res.ok) {
-    throw new Error(`Request failed: ${res.status} ${res.statusText}`)
+    throw new ApiError(await parseErrorMessage(res), res.status)
   }
   if (res.status === 204) {
     return undefined as T
