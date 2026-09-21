@@ -82,8 +82,8 @@ export function createItemsRouter(upload: Multer): Router {
       return;
     }
     const tags = parseTags(req.body.tags);
-    if (!tags || tags.length === 0) {
-      res.status(400).json({ error: 'tags must be a non-empty array of strings' });
+    if (!tags) {
+      res.status(400).json({ error: 'tags must be an array of strings' });
       return;
     }
 
@@ -144,8 +144,8 @@ export function createItemsRouter(upload: Multer): Router {
     let newTags: string[] | null = null;
     if (body.tags !== undefined) {
       const tags = parseTags(body.tags);
-      if (!tags || tags.length === 0) {
-        res.status(400).json({ error: 'tags must be a non-empty array of strings' });
+      if (!tags) {
+        res.status(400).json({ error: 'tags must be an array of strings' });
         return;
       }
       newTags = tags;

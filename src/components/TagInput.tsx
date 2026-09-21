@@ -8,6 +8,7 @@ interface TagInputProps {
 
 export function TagInput({ value, onChange, suggestions }: TagInputProps) {
   const [text, setText] = useState('')
+  const [focused, setFocused] = useState(false)
 
   function commit(raw: string) {
     const trimmed = raw.trim()
@@ -38,7 +39,7 @@ export function TagInput({ value, onChange, suggestions }: TagInputProps) {
       s.toLowerCase().includes(text.trim().toLowerCase()) &&
       !value.some((t) => t.toLowerCase() === s.toLowerCase()),
   )
-  const showSuggestions = text.trim().length > 0 && filteredSuggestions.length > 0
+  const showSuggestions = focused && filteredSuggestions.length > 0
 
   return (
     <div class="relative">
@@ -64,6 +65,8 @@ export function TagInput({ value, onChange, suggestions }: TagInputProps) {
           value={text}
           onInput={(e) => setText((e.target as HTMLInputElement).value)}
           onKeyDown={handleKeyDown}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setTimeout(() => setFocused(false), 150)}
           placeholder={value.length === 0 ? 'Add tags…' : ''}
           class="min-w-[6rem] flex-1 border-none px-1 py-1 text-sm focus:outline-none"
         />

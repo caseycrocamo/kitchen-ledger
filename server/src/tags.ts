@@ -1,4 +1,5 @@
 import db from './db';
+import { SEED_TAG_NAMES } from './seedTags';
 
 function normalizeNames(names: string[]): string[] {
   const seen = new Set<string>();
@@ -35,7 +36,14 @@ export function setItemTags(itemId: number, names: string[]): void {
     linkTag.run(itemId, tagId);
   }
 
-  db.exec('DELETE FROM tags WHERE id NOT IN (SELECT DISTINCT tag_id FROM item_tags)');
+  // Starter tags stick around even unused, so the picker always offers them; anything
+  // else that's fallen out of use (a custom tag whose last item was retagged) is pruned.
+  const seedPlaceholders = SEED_TAG_NAMES.map(() => '?').join(', ');
+  db.prepare(
+    `DELETE FROM tags
+     WHERE id NOT IN (SELECT DISTINCT tag_id FROM item_tags)
+       AND name NOT IN (${seedPlaceholders}) COLLATE NOCASE`,
+  ).run(...SEED_TAG_NAMES);
 }
 
 export function getTagsForItems(itemIds: number[]): Map<number, string[]> {

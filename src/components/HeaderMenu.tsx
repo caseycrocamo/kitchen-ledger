@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'preact/hooks'
-import { navigate } from '../router'
+import { currentPath, navigate } from '../router'
 
 export function HeaderMenu() {
   const [open, setOpen] = useState(false)
+  const onDashboard = currentPath.value === '/dashboard'
 
   useEffect(() => {
     if (!open) return
@@ -12,6 +13,11 @@ export function HeaderMenu() {
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [open])
+
+  function go(path: string) {
+    navigate(path)
+    setOpen(false)
+  }
 
   return (
     <div class="relative">
@@ -34,17 +40,24 @@ export function HeaderMenu() {
       {open && (
         <>
           <div class="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div class="absolute right-0 top-full mt-1 z-50 w-44 rounded-md border border-slate-200 bg-white py-1 shadow-lg">
-            <button
-              type="button"
-              onClick={() => {
-                navigate('/dashboard')
-                setOpen(false)
-              }}
-              class="block w-full text-left px-4 py-2.5 min-h-11 text-sm text-slate-700 hover:bg-slate-100"
-            >
-              Dashboard
-            </button>
+          <div class="absolute left-0 top-full mt-1 z-50 w-44 rounded-md border border-slate-200 bg-white py-1 shadow-lg">
+            {onDashboard ? (
+              <button
+                type="button"
+                onClick={() => go('/')}
+                class="block w-full text-left px-4 py-2.5 min-h-11 text-sm text-slate-700 hover:bg-slate-100"
+              >
+                Items
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => go('/dashboard')}
+                class="block w-full text-left px-4 py-2.5 min-h-11 text-sm text-slate-700 hover:bg-slate-100"
+              >
+                Dashboard
+              </button>
+            )}
           </div>
         </>
       )}

@@ -2,6 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import Database from 'better-sqlite3';
 
+import { SEED_TAG_NAMES } from './seedTags';
+
 const dbPath = process.env.DB_PATH;
 if (!dbPath) {
   throw new Error('DB_PATH environment variable is required');
@@ -104,6 +106,13 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_consumption_events_occurred
   ON consumption_events (occurred_at)
 `);
+
+// Seed a starter set of location tags so the tag picker isn't empty on a fresh DB.
+// INSERT OR IGNORE makes this a no-op once the tag exists (whether still in use or not).
+const insertSeedTag = db.prepare('INSERT OR IGNORE INTO tags (name) VALUES (?)');
+for (const name of SEED_TAG_NAMES) {
+  insertSeedTag.run(name);
+}
 
 // Launch-day backfill: any item with servings but no batch rows yet gets one batch
 // dated "now" — a no-op on every boot after the first covers it.
