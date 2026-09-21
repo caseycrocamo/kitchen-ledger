@@ -5,18 +5,8 @@ import { Router, type Request, type Response } from 'express';
 import type { Multer } from 'multer';
 
 import db from '../db';
-import type { Category, Item, Location } from '../types';
-
-const CATEGORIES: readonly Category[] = ['main', 'side'];
-const LOCATIONS: readonly Location[] = ['fridge', 'freezer'];
-
-function isCategory(value: unknown): value is Category {
-  return typeof value === 'string' && (CATEGORIES as readonly string[]).includes(value);
-}
-
-function isLocation(value: unknown): value is Location {
-  return typeof value === 'string' && (LOCATIONS as readonly string[]).includes(value);
-}
+import { getTagsForItems, setItemTags } from '../tags';
+import type { Item } from '../types';
 
 /** Accepts only strings of digits (no sign, no decimal point) — a strict non-negative integer. */
 function parseServings(value: unknown): number | null {
@@ -24,6 +14,26 @@ function parseServings(value: unknown): number | null {
   const trimmed = value.trim();
   if (!/^\d+$/.test(trimmed)) return null;
   return Number(trimmed);
+}
+
+/** Tags arrive as a JSON-encoded array inside the multipart FormData body. */
+function parseTags(raw: unknown): string[] | null {
+  if (typeof raw !== 'string') return null;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(parsed)) return null;
+  const tags: string[] = [];
+  for (const entry of parsed) {
+    if (typeof entry !== 'string') return null;
+    const trimmed = entry.trim();
+    if (!trimmed) return null;
+    tags.push(trimmed);
+  }
+  return tags;
 }
 
 function parseId(raw: string): number | null {
@@ -45,30 +55,34 @@ function deleteImageFile(filename: string | null | undefined): void {
 }
 
 function getItemById(id: number): Item | undefined {
-  return db.prepare('SELECT * FROM items WHERE id = ?').get(id) as Item | undefined;
+  const row = db.prepare('SELECT * FROM items WHERE id = ?').get(id) as
+    | Omit<Item, 'tags'>
+    | undefined;
+  if (!row) return undefined;
+  const tags = getTagsForItems([id]).get(id) ?? [];
+  return { ...row, tags };
 }
 
 export function createItemsRouter(upload: Multer): Router {
   const router = Router();
 
   router.get('/', (_req: Request, res: Response) => {
-    const items = db.prepare('SELECT * FROM items ORDER BY id').all();
+    const rows = db.prepare('SELECT * FROM items ORDER BY id').all() as Omit<Item, 'tags'>[];
+    const tagsByItem = getTagsForItems(rows.map((row) => row.id));
+    const items: Item[] = rows.map((row) => ({ ...row, tags: tagsByItem.get(row.id) ?? [] }));
     res.json(items);
   });
 
   router.post('/', upload.single('image'), (req: Request, res: Response) => {
-    const { name, category, location } = req.body as Record<string, unknown>;
+    const { name } = req.body as Record<string, unknown>;
 
     if (typeof name !== 'string' || name.trim().length === 0) {
       res.status(400).json({ error: 'name is required' });
       return;
     }
-    if (!isCategory(category)) {
-      res.status(400).json({ error: "category must be 'main' or 'side'" });
-      return;
-    }
-    if (!isLocation(location)) {
-      res.status(400).json({ error: "location must be 'fridge' or 'freezer'" });
+    const tags = parseTags(req.body.tags);
+    if (!tags || tags.length === 0) {
+      res.status(400).json({ error: 'tags must be a non-empty array of strings' });
       return;
     }
 
@@ -84,14 +98,19 @@ export function createItemsRouter(upload: Multer): Router {
 
     const imageFilename = req.file ? req.file.filename : null;
 
-    const result = db
-      .prepare(
-        `INSERT INTO items (name, category, location, servings, image_filename)
-         VALUES (?, ?, ?, ?, ?)`,
-      )
-      .run(name.trim(), category, location, servings, imageFilename);
+    const newId = db.transaction(() => {
+      const result = db
+        .prepare(
+          `INSERT INTO items (name, servings, image_filename)
+           VALUES (?, ?, ?)`,
+        )
+        .run(name.trim(), servings, imageFilename);
+      const id = Number(result.lastInsertRowid);
+      setItemTags(id, tags);
+      return id;
+    })();
 
-    const created = getItemById(Number(result.lastInsertRowid));
+    const created = getItemById(newId);
     res.status(201).json(created);
   });
 
@@ -120,22 +139,14 @@ export function createItemsRouter(upload: Multer): Router {
       values.push(body.name.trim());
     }
 
-    if (body.category !== undefined) {
-      if (!isCategory(body.category)) {
-        res.status(400).json({ error: "category must be 'main' or 'side'" });
+    let newTags: string[] | null = null;
+    if (body.tags !== undefined) {
+      const tags = parseTags(body.tags);
+      if (!tags || tags.length === 0) {
+        res.status(400).json({ error: 'tags must be a non-empty array of strings' });
         return;
       }
-      updates.push('category = ?');
-      values.push(body.category);
-    }
-
-    if (body.location !== undefined) {
-      if (!isLocation(body.location)) {
-        res.status(400).json({ error: "location must be 'fridge' or 'freezer'" });
-        return;
-      }
-      updates.push('location = ?');
-      values.push(body.location);
+      newTags = tags;
     }
 
     if (body.servings !== undefined) {
@@ -162,7 +173,10 @@ export function createItemsRouter(upload: Multer): Router {
 
     updates.push('updated_at = CURRENT_TIMESTAMP');
 
-    db.prepare(`UPDATE items SET ${updates.join(', ')} WHERE id = ?`).run(...values, id);
+    db.transaction(() => {
+      db.prepare(`UPDATE items SET ${updates.join(', ')} WHERE id = ?`).run(...values, id);
+      if (newTags) setItemTags(id, newTags);
+    })();
 
     res.json(getItemById(id));
   });

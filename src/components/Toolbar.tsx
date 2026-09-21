@@ -1,38 +1,22 @@
 import { useState } from 'preact/hooks'
-import { categoryFilter, locationFilter, searchQuery, sortBy, type SortOption } from '../state'
-import type { Category, Location } from '../types'
+import { allTags, searchQuery, sortBy, tagFilter, type SortOption } from '../state'
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'name', label: 'Name (A–Z)' },
   { value: 'newest', label: 'Newest added' },
   { value: 'servings', label: 'Servings (high→low)' },
-  { value: 'category', label: 'Category' },
-  { value: 'location', label: 'Location' },
 ]
 
-const CATEGORY_OPTIONS: { value: 'all' | Category; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'main', label: 'Main' },
-  { value: 'side', label: 'Side' },
-]
-
-const LOCATION_OPTIONS: { value: 'all' | Location; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'fridge', label: 'Fridge' },
-  { value: 'freezer', label: 'Freezer' },
-]
-
-function segmentClass(active: boolean) {
-  return `px-3 py-2.5 min-h-11 text-sm ${
-    active ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 hover:bg-slate-100'
-  }`
+function toggleTag(tag: string) {
+  tagFilter.value = tagFilter.value.includes(tag)
+    ? tagFilter.value.filter((t) => t !== tag)
+    : [...tagFilter.value, tag]
 }
 
 export function Toolbar() {
   const [filtersOpen, setFiltersOpen] = useState(false)
 
-  const activeFilterCount =
-    (categoryFilter.value !== 'all' ? 1 : 0) + (locationFilter.value !== 'all' ? 1 : 0)
+  const activeFilterCount = tagFilter.value.length
 
   return (
     <div class="rounded-lg border border-slate-200 bg-white p-4">
@@ -75,28 +59,19 @@ export function Toolbar() {
 
       {filtersOpen && (
         <div class="mt-3 flex flex-col gap-3 border-t border-slate-200 pt-3 sm:flex-row sm:flex-wrap sm:items-center">
-          <div class="flex overflow-hidden rounded-md border border-slate-300 self-start" role="group" aria-label="Filter by category">
-            {CATEGORY_OPTIONS.map((opt) => (
+          <div class="flex flex-wrap gap-1.5 self-start" role="group" aria-label="Filter by tag">
+            {allTags.value.map((tag) => (
               <button
-                key={opt.value}
+                key={tag}
                 type="button"
-                onClick={() => (categoryFilter.value = opt.value)}
-                class={segmentClass(categoryFilter.value === opt.value)}
+                onClick={() => toggleTag(tag)}
+                class={`rounded-full px-3 py-2 min-h-11 text-sm ${
+                  tagFilter.value.includes(tag)
+                    ? 'bg-slate-900 text-white'
+                    : 'bg-white text-slate-600 border border-slate-300 hover:bg-slate-100'
+                }`}
               >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-
-          <div class="flex overflow-hidden rounded-md border border-slate-300 self-start" role="group" aria-label="Filter by location">
-            {LOCATION_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => (locationFilter.value = opt.value)}
-                class={segmentClass(locationFilter.value === opt.value)}
-              >
-                {opt.label}
+                {tag}
               </button>
             ))}
           </div>

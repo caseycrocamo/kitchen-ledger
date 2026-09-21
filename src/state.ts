@@ -1,16 +1,17 @@
 import { computed, signal } from '@preact/signals'
-import { fetchItems } from './api'
-import type { Category, Item, Location } from './types'
+import { fetchItems, fetchTags } from './api'
+import type { Item } from './types'
 
-export type SortOption = 'name' | 'newest' | 'servings' | 'category' | 'location'
+export type SortOption = 'name' | 'newest' | 'servings'
 
 export const items = signal<Item[]>([])
 export const isLoading = signal(true)
 export const loadError = signal<string | null>(null)
 
+export const allTags = signal<string[]>([])
+
 export const searchQuery = signal('')
-export const categoryFilter = signal<'all' | Category>('all')
-export const locationFilter = signal<'all' | Location>('all')
+export const tagFilter = signal<string[]>([])
 export const sortBy = signal<SortOption>('name')
 
 export async function loadItems(): Promise<void> {
@@ -25,16 +26,27 @@ export async function loadItems(): Promise<void> {
   }
 }
 
+export async function loadTags(): Promise<void> {
+  try {
+    const tags = await fetchTags()
+    allTags.value = tags.map((tag) => tag.name)
+  } catch {
+    // Non-critical — the tag filter/autocomplete just stays empty.
+  }
+}
+
 // Real filter/sort logic (chunk 08's deliverable).
 export const visibleItems = computed<Item[]>(() => {
   const query = searchQuery.value.trim().toLowerCase()
-  const category = categoryFilter.value
-  const location = locationFilter.value
+  const tags = tagFilter.value
 
   const filtered = items.value.filter((item) => {
     if (query && !item.name.toLowerCase().includes(query)) return false
-    if (category !== 'all' && item.category !== category) return false
-    if (location !== 'all' && item.location !== location) return false
+    if (
+      tags.length > 0 &&
+      !tags.every((t) => item.tags.some((it) => it.toLowerCase() === t.toLowerCase()))
+    )
+      return false
     return true
   })
 
@@ -50,12 +62,6 @@ export const visibleItems = computed<Item[]>(() => {
       break
     case 'servings':
       sorted.sort((a, b) => b.servings - a.servings)
-      break
-    case 'category':
-      sorted.sort((a, b) => a.category.localeCompare(b.category))
-      break
-    case 'location':
-      sorted.sort((a, b) => a.location.localeCompare(b.location))
       break
   }
   return sorted

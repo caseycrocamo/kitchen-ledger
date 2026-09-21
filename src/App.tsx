@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'preact/hooks'
-import { loadItems } from './state'
+import { loadItems, loadTags } from './state'
 import { ItemList } from './components/ItemList'
 import { ItemFormModal } from './components/ItemFormModal'
 import { Toolbar } from './components/Toolbar'
@@ -12,6 +12,7 @@ export function App() {
 
   useEffect(() => {
     loadItems()
+    loadTags()
   }, [])
 
   return (

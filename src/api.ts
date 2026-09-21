@@ -1,9 +1,8 @@
-import type { Category, Item, Location } from './types'
+import type { Item } from './types'
 
 export interface ItemInput {
   name: string
-  category: Category
-  location: Location
+  tags: string[]
   servings: number
   image?: File | null
 }
@@ -47,8 +46,7 @@ async function request<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
 function toFormData(input: ItemInput | ItemUpdateInput): FormData {
   const formData = new FormData()
   if (input.name !== undefined) formData.set('name', input.name)
-  if (input.category !== undefined) formData.set('category', input.category)
-  if (input.location !== undefined) formData.set('location', input.location)
+  if (input.tags !== undefined) formData.set('tags', JSON.stringify(input.tags))
   if (input.servings !== undefined) formData.set('servings', String(input.servings))
   if (input.image) formData.set('image', input.image)
   if ('removeImage' in input && input.removeImage) formData.set('removeImage', 'true')
@@ -57,6 +55,10 @@ function toFormData(input: ItemInput | ItemUpdateInput): FormData {
 
 export function fetchItems(): Promise<Item[]> {
   return request<Item[]>('/api/items')
+}
+
+export function fetchTags(): Promise<{ id: number; name: string; itemCount: number }[]> {
+  return request<{ id: number; name: string; itemCount: number }[]>('/api/tags')
 }
 
 export function createItem(input: ItemInput): Promise<Item> {

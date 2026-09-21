@@ -10,16 +10,6 @@ interface ItemCardProps {
   onEdit: (item: Item) => void
 }
 
-const CATEGORY_LABEL: Record<Item['category'], string> = {
-  main: 'Main',
-  side: 'Side',
-}
-
-const LOCATION_LABEL: Record<Item['location'], string> = {
-  fridge: 'Fridge',
-  freezer: 'Freezer',
-}
-
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean)
   if (parts.length === 0) return '?'
@@ -180,12 +170,14 @@ export function ItemCard({ item, onEdit }: ItemCardProps) {
         {expanded && (
           <div class="px-3 pb-4 flex flex-col gap-3">
             <div class="flex gap-2 flex-wrap">
-              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
-                {CATEGORY_LABEL[item.category]}
-              </span>
-              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-teal-100 text-teal-700">
-                {LOCATION_LABEL[item.location]}
-              </span>
+              {item.tags.map((tag) => (
+                <span
+                  key={tag}
+                  class="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-700"
+                >
+                  {tag}
+                </span>
+              ))}
             </div>
             {item.image_filename ? (
               <img

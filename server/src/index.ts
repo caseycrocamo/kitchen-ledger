@@ -6,6 +6,7 @@ import express, { type ErrorRequestHandler } from 'express';
 import multer, { MulterError } from 'multer';
 
 import { createItemsRouter } from './routes/items';
+import { createTagsRouter } from './routes/tags';
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3001;
 const UPLOADS_DIR = process.env.UPLOADS_DIR;
@@ -40,6 +41,7 @@ const app = express();
 app.use(express.json());
 app.use('/api/uploads', express.static(UPLOADS_DIR));
 app.use('/api/items', createItemsRouter(upload));
+app.use('/api/tags', createTagsRouter());
 
 const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   if (err instanceof MulterError) {

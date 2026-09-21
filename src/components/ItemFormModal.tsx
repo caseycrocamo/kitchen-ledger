@@ -4,8 +4,9 @@
 
 import { useEffect, useRef, useState } from 'preact/hooks'
 import { ApiError, createItem, updateItem } from '../api'
-import { items } from '../state'
-import type { Category, Item, Location } from '../types'
+import { allTags, items, loadTags } from '../state'
+import type { Item } from '../types'
+import { TagInput } from './TagInput'
 
 interface ItemFormModalProps {
   mode: 'create' | 'edit'
@@ -13,20 +14,9 @@ interface ItemFormModalProps {
   onClose: () => void
 }
 
-const CATEGORY_OPTIONS: { value: Category; label: string }[] = [
-  { value: 'main', label: 'Main' },
-  { value: 'side', label: 'Side' },
-]
-
-const LOCATION_OPTIONS: { value: Location; label: string }[] = [
-  { value: 'fridge', label: 'Fridge' },
-  { value: 'freezer', label: 'Freezer' },
-]
-
 export function ItemFormModal({ mode, item, onClose }: ItemFormModalProps) {
   const [name, setName] = useState(item?.name ?? '')
-  const [category, setCategory] = useState<Category>(item?.category ?? 'main')
-  const [location, setLocation] = useState<Location>(item?.location ?? 'fridge')
+  const [tags, setTags] = useState<string[]>(item?.tags ?? [])
   const [servings, setServings] = useState(item?.servings ?? 1)
 
   // Image handling: `imageFile` is a freshly-picked file awaiting upload. `imageRemoved`
@@ -73,8 +63,7 @@ export function ItemFormModal({ mode, item, onClose }: ItemFormModalProps) {
       if (mode === 'create') {
         result = await createItem({
           name,
-          category,
-          location,
+          tags,
           servings,
           image: imageFile,
         })
@@ -82,14 +71,14 @@ export function ItemFormModal({ mode, item, onClose }: ItemFormModalProps) {
       } else {
         result = await updateItem(item!.id, {
           name,
-          category,
-          location,
+          tags,
           servings,
           image: imageFile,
           removeImage: imageRemoved && !imageFile,
         })
         items.value = items.value.map((i) => (i.id === result.id ? result : i))
       }
+      loadTags()
       onClose()
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.')
@@ -125,70 +114,11 @@ export function ItemFormModal({ mode, item, onClose }: ItemFormModalProps) {
             />
           </div>
 
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label for="item-category" class="mb-1 block text-sm font-medium text-slate-700">
-                Category
-              </label>
-              <div class="relative">
-                <select
-                  id="item-category"
-                  value={category}
-                  onChange={(e) => setCategory((e.target as HTMLSelectElement).value as Category)}
-                  class="w-full appearance-none rounded-md border border-slate-300 pl-3 pr-8 py-2 text-sm focus:border-emerald-500 focus:outline-none"
-                >
-                  {CATEGORY_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </div>
-            </div>
-
-            <div>
-              <label for="item-location" class="mb-1 block text-sm font-medium text-slate-700">
-                Location
-              </label>
-              <div class="relative">
-                <select
-                  id="item-location"
-                  value={location}
-                  onChange={(e) => setLocation((e.target as HTMLSelectElement).value as Location)}
-                  class="w-full appearance-none rounded-md border border-slate-300 pl-3 pr-8 py-2 text-sm focus:border-emerald-500 focus:outline-none"
-                >
-                  {LOCATION_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </div>
-            </div>
+          <div>
+            <label for="item-tags" class="mb-1 block text-sm font-medium text-slate-700">
+              Tags
+            </label>
+            <TagInput value={tags} onChange={setTags} suggestions={allTags.value} />
           </div>
 
           <div>
