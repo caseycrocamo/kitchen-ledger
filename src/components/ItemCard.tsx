@@ -118,27 +118,17 @@ export function ItemCard({ item, onEdit }: ItemCardProps) {
             disabled={pending || item.servings <= 0}
             onClick={() => adjustServings(-1)}
             aria-label="Decrease servings"
-            class="w-11 h-11 shrink-0 rounded-full border border-red-300 text-red-600 flex items-center justify-center hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            class="w-11 h-11 shrink-0 rounded-full bg-red-600 text-white flex items-center justify-center hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             &minus;
           </button>
 
-          <div class="relative shrink-0 w-11 h-11">
-            {item.image_filename ? (
-              <img
-                src={`/api/uploads/${item.image_filename}`}
-                alt={item.name}
-                class="w-11 h-11 rounded-full object-cover bg-slate-100"
-              />
-            ) : (
-              <div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-sm font-semibold text-slate-400">
-                {initials(item.name)}
-              </div>
-            )}
-            <span class="absolute -bottom-1 -right-1 bg-slate-900 text-white text-[10px] rounded-full px-1.5 leading-relaxed tabular-nums">
-              {item.servings}
-            </span>
-          </div>
+          <span
+            class="shrink-0 w-8 h-8 rounded-full bg-slate-900 text-white text-xs font-semibold flex items-center justify-center tabular-nums"
+            aria-label={`${item.servings} ${item.servings === 1 ? 'serving' : 'servings'}`}
+          >
+            {item.servings}
+          </span>
 
           <span class="flex-1 break-words font-medium text-slate-900">{item.name}</span>
 
@@ -172,7 +162,7 @@ export function ItemCard({ item, onEdit }: ItemCardProps) {
             disabled={pending}
             onClick={() => adjustServings(1)}
             aria-label="Increase servings"
-            class="w-11 h-11 shrink-0 rounded-full border border-emerald-300 text-emerald-600 flex items-center justify-center hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            class="w-11 h-11 shrink-0 rounded-full bg-emerald-600 text-white flex items-center justify-center hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             +
           </button>
