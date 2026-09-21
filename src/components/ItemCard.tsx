@@ -118,19 +118,19 @@ export function ItemCard({ item, onEdit }: ItemCardProps) {
             disabled={pending || item.servings <= 0}
             onClick={() => adjustServings(-1)}
             aria-label="Decrease servings"
-            class="w-11 h-11 shrink-0 rounded-full bg-red-600 text-white flex items-center justify-center hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed"
+            class="w-11 h-11 shrink-0 rounded-full bg-slate-400 text-white flex items-center justify-center hover:bg-slate-500 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             &minus;
           </button>
 
+          <span class="flex-1 break-words font-medium text-slate-900 text-left">{item.name}</span>
+
           <span
-            class="shrink-0 w-8 h-8 rounded-full bg-slate-900 text-white text-xs font-semibold flex items-center justify-center tabular-nums"
+            class="shrink-0 text-sm font-medium text-slate-400 text-right tabular-nums"
             aria-label={`${item.servings} ${item.servings === 1 ? 'serving' : 'servings'}`}
           >
             {item.servings}
           </span>
-
-          <span class="flex-1 break-words font-medium text-slate-900">{item.name}</span>
 
           <button
             type="button"
@@ -162,7 +162,7 @@ export function ItemCard({ item, onEdit }: ItemCardProps) {
             disabled={pending}
             onClick={() => adjustServings(1)}
             aria-label="Increase servings"
-            class="w-11 h-11 shrink-0 rounded-full bg-emerald-600 text-white flex items-center justify-center hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed"
+            class="w-11 h-11 shrink-0 rounded-full bg-slate-400 text-white flex items-center justify-center hover:bg-slate-500 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             +
           </button>
