@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'preact/hooks'
 import { Chart } from 'chart.js/auto'
 import type { ServingsPerDay } from '../types'
+import { colorForItem } from './chartColors'
 
 interface ServingsChartProps {
   data: ServingsPerDay[]
@@ -13,23 +14,28 @@ export function ServingsChart({ data }: ServingsChartProps) {
   useEffect(() => {
     if (!canvasRef.current) return
 
+    const items = data[0]?.items ?? []
+    const datasets = items.map((item, i) => ({
+      label: item.itemName,
+      data: data.map((day) => day.items[i]?.quantity ?? 0),
+      backgroundColor: colorForItem(item.itemId, i),
+      stack: 'servings',
+    }))
+
     chartRef.current?.destroy()
     chartRef.current = new Chart(canvasRef.current, {
       type: 'bar',
       data: {
         labels: data.map((d) => d.date),
-        datasets: [
-          {
-            label: 'Servings consumed',
-            data: data.map((d) => d.consumed),
-            backgroundColor: '#059669',
-          },
-        ],
+        datasets,
       },
       options: {
         responsive: true,
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+        plugins: { legend: { display: datasets.length > 1, position: 'bottom' } },
+        scales: {
+          x: { stacked: true },
+          y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } },
+        },
       },
     })
 
@@ -39,5 +45,5 @@ export function ServingsChart({ data }: ServingsChartProps) {
     }
   }, [data])
 
-  return <canvas ref={canvasRef} role="img" aria-label="Servings consumed per day" />
+  return <canvas ref={canvasRef} role="img" aria-label="Servings consumed per day, by item" />
 }

@@ -10,12 +10,12 @@ export interface Item {
 
 export interface ServingsPerDay {
   date: string;
-  consumed: number;
+  items: { itemId: number | null; itemName: string; quantity: number }[];
 }
 
 export interface AgePerDay {
   date: string;
-  avgAgeDays: number | null;
+  items: { itemId: number | null; itemName: string; avgAgeDays: number | null }[];
 }
 
 export type Insight =

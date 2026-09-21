@@ -63,10 +63,10 @@ export function DashboardPage() {
 
   return (
     <div class="max-w-3xl mx-auto space-y-6">
-      <Section title="Servings consumed per day">
+      <Section title="Servings consumed per day, by item">
         <ServingsChart data={servingsPerDay.value} />
       </Section>
-      <Section title="Average age of servings eaten">
+      <Section title="Average age of servings eaten, by item">
         <AgeChart data={agePerDay.value} />
       </Section>
       <Section title="Insights">
