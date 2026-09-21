@@ -126,7 +126,7 @@ export function ItemCard({ item, onEdit }: ItemCardProps) {
           <span class="flex-1 break-words font-medium text-slate-900 text-left px-2">{item.name}</span>
 
           <span
-            class="shrink-0 text-base font-semibold text-slate-500 text-right tabular-nums px-2"
+            class="shrink-0 text-lg font-semibold text-slate-500 text-right tabular-nums px-2"
             aria-label={`${item.servings} ${item.servings === 1 ? 'serving' : 'servings'}`}
           >
             {item.servings}

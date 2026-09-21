@@ -53,7 +53,7 @@ export function Toolbar() {
           aria-label="Filter and sort"
           class={`relative shrink-0 min-h-11 flex items-center gap-1.5 rounded-md border px-3 text-sm font-medium ${
             filtersOpen || activeFilterCount > 0
-              ? 'border-slate-900 bg-slate-900 text-white'
+              ? 'border-slate-400 bg-slate-100 text-slate-700'
               : 'border-slate-300 bg-white text-slate-600 hover:bg-slate-100'
           }`}
         >
@@ -66,7 +66,7 @@ export function Toolbar() {
           </svg>
           Filter
           {activeFilterCount > 0 && (
-            <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-500 text-white text-[10px] font-semibold">
+            <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-500 text-white text-[10px] font-semibold">
               {activeFilterCount}
             </span>
           )}
