@@ -106,7 +106,7 @@ export function ItemCard({ item, onEdit }: ItemCardProps) {
 
       <div
         class={`relative bg-white ${isSnapping ? 'transition-transform duration-200 ease-out' : ''}`}
-        style={{ transform: `translateX(${revealX}px)` }}
+        style={{ transform: `translateX(${revealX}px)`, touchAction: 'none' }}
         onPointerDown={rowHandlers.onPointerDown}
         onPointerMove={rowHandlers.onPointerMove}
         onPointerUp={rowHandlers.onPointerUp}
@@ -118,7 +118,7 @@ export function ItemCard({ item, onEdit }: ItemCardProps) {
             disabled={pending || item.servings <= 0}
             onClick={() => adjustServings(-1)}
             aria-label="Decrease servings"
-            class="w-11 h-11 shrink-0 rounded-full border border-slate-300 text-slate-600 flex items-center justify-center hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"
+            class="w-11 h-11 shrink-0 rounded-full border border-red-300 text-red-600 flex items-center justify-center hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             &minus;
           </button>
@@ -146,7 +146,7 @@ export function ItemCard({ item, onEdit }: ItemCardProps) {
             type="button"
             aria-expanded={expanded}
             aria-label={expanded ? 'Hide details' : `Show details for ${item.name}`}
-            class="w-8 h-8 shrink-0 flex items-center justify-center text-slate-400 hover:text-slate-600"
+            class="hidden md:flex w-8 h-8 shrink-0 items-center justify-center text-slate-400 hover:text-slate-600"
             style={{ touchAction: 'none' }}
             onPointerDown={handleHandlers.onPointerDown}
             onPointerMove={handleHandlers.onPointerMove}
@@ -172,7 +172,7 @@ export function ItemCard({ item, onEdit }: ItemCardProps) {
             disabled={pending}
             onClick={() => adjustServings(1)}
             aria-label="Increase servings"
-            class="w-11 h-11 shrink-0 rounded-full border border-slate-300 text-slate-600 flex items-center justify-center hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"
+            class="w-11 h-11 shrink-0 rounded-full border border-emerald-300 text-emerald-600 flex items-center justify-center hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             +
           </button>
@@ -181,7 +181,7 @@ export function ItemCard({ item, onEdit }: ItemCardProps) {
             type="button"
             aria-label={`Actions for ${item.name}`}
             onClick={toggleReveal}
-            class="w-6 h-8 shrink-0 flex items-center justify-center text-slate-400 hover:text-slate-600"
+            class="hidden md:flex w-6 h-8 shrink-0 items-center justify-center text-slate-400 hover:text-slate-600"
           >
             ⋮
           </button>

@@ -12,6 +12,7 @@ interface DragState {
   startY: number
   startRevealX: number
   isDragging: boolean
+  mode?: 'horizontal' | 'vertical'
 }
 
 export function useSwipeRow() {
@@ -62,21 +63,25 @@ export function useSwipeRow() {
       const dy = e.clientY - drag.startY
       if (!drag.isDragging) {
         if (Math.abs(dx) < TAP_THRESHOLD && Math.abs(dy) < TAP_THRESHOLD) return
-        if (Math.abs(dy) > Math.abs(dx)) {
-          // Vertical intent — let native scroll / the handle own it.
-          horizontalDrag.current = null
-          return
-        }
         drag.isDragging = true
+        drag.mode = Math.abs(dy) > Math.abs(dx) ? 'vertical' : 'horizontal'
         ;(e.target as Element).setPointerCapture?.(e.pointerId)
       }
-      setIsSnapping(false)
-      setRevealX(clampReveal(drag.startRevealX + dx))
+      if (drag.mode === 'horizontal') {
+        setIsSnapping(false)
+        setRevealX(clampReveal(drag.startRevealX + dx))
+      }
     },
     onPointerUp: (e: PointerEvent) => {
       const drag = horizontalDrag.current
       horizontalDrag.current = null
       if (!drag || !drag.isDragging) return
+      if (drag.mode === 'vertical') {
+        const dy = e.clientY - drag.startY
+        if (dy > TAP_THRESHOLD) setExpanded(true)
+        else if (dy < -TAP_THRESHOLD) setExpanded(false)
+        return
+      }
       const dx = e.clientX - drag.startX
       setIsSnapping(true)
       if (dx < -SNAP_DISTANCE_THRESHOLD) {
