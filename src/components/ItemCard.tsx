@@ -112,7 +112,7 @@ export function ItemCard({ item, onEdit }: ItemCardProps) {
         onPointerUp={rowHandlers.onPointerUp}
         onPointerCancel={rowHandlers.onPointerUp}
       >
-        <div class="h-16 flex items-center gap-3 px-3">
+        <div class="min-h-16 flex items-center gap-3 px-3 py-2">
           <button
             type="button"
             disabled={pending || item.servings <= 0}
@@ -140,7 +140,7 @@ export function ItemCard({ item, onEdit }: ItemCardProps) {
             </span>
           </div>
 
-          <span class="flex-1 truncate font-medium text-slate-900">{item.name}</span>
+          <span class="flex-1 break-words font-medium text-slate-900">{item.name}</span>
 
           <button
             type="button"
