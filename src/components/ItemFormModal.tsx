@@ -130,36 +130,64 @@ export function ItemFormModal({ mode, item, onClose }: ItemFormModalProps) {
               <label for="item-category" class="mb-1 block text-sm font-medium text-slate-700">
                 Category
               </label>
-              <select
-                id="item-category"
-                value={category}
-                onChange={(e) => setCategory((e.target as HTMLSelectElement).value as Category)}
-                class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
-              >
-                {CATEGORY_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+              <div class="relative">
+                <select
+                  id="item-category"
+                  value={category}
+                  onChange={(e) => setCategory((e.target as HTMLSelectElement).value as Category)}
+                  class="w-full appearance-none rounded-md border border-slate-300 pl-3 pr-8 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+                >
+                  {CATEGORY_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
             </div>
 
             <div>
               <label for="item-location" class="mb-1 block text-sm font-medium text-slate-700">
                 Location
               </label>
-              <select
-                id="item-location"
-                value={location}
-                onChange={(e) => setLocation((e.target as HTMLSelectElement).value as Location)}
-                class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
-              >
-                {LOCATION_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+              <div class="relative">
+                <select
+                  id="item-location"
+                  value={location}
+                  onChange={(e) => setLocation((e.target as HTMLSelectElement).value as Location)}
+                  class="w-full appearance-none rounded-md border border-slate-300 pl-3 pr-8 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+                >
+                  {LOCATION_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
 
