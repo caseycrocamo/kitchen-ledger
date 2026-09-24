@@ -5,6 +5,7 @@ import path from 'node:path';
 import express, { type ErrorRequestHandler } from 'express';
 import multer, { MulterError } from 'multer';
 
+import { initDb } from './db';
 import { createAnalyticsRouter } from './routes/analytics';
 import { createItemsRouter } from './routes/items';
 import { createTagsRouter } from './routes/tags';
@@ -59,6 +60,13 @@ const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
 };
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`kitchen-ledger server listening on port ${PORT}`);
-});
+initDb()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`kitchen-ledger server listening on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Failed to initialize database:', err);
+    process.exit(1);
+  });

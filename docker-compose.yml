@@ -14,10 +14,28 @@ services:
       dockerfile: Dockerfile
     environment:
       PORT: 3001
-      DB_PATH: /app/data/kitchen-ledger.db
+      DATABASE_URL: postgres://kitchen:kitchen@db:5432/kitchen_ledger
       UPLOADS_DIR: /app/data/uploads
     volumes:
       - kitchen-data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: kitchen
+      POSTGRES_PASSWORD: kitchen
+      POSTGRES_DB: kitchen_ledger
+    volumes:
+      - kitchen-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kitchen -d kitchen_ledger"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 volumes:
   kitchen-data:
+  kitchen-db-data:

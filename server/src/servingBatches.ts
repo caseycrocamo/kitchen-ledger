@@ -1,43 +1,36 @@
-import db from './db';
+import type { PoolClient } from 'pg';
 
-/** Matches SQLite's CURRENT_TIMESTAMP format ("YYYY-MM-DD HH:MM:SS", UTC). */
-export function nowSql(): string {
-  return new Date().toISOString().slice(0, 19).replace('T', ' ');
+import pool from './db';
+
+function daysBetween(from: Date, to: Date): number {
+  return Math.max(0, Math.floor((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)));
 }
 
-function daysBetween(from: string, to: string): number {
-  const fromMs = new Date(from.replace(' ', 'T') + 'Z').getTime();
-  const toMs = new Date(to.replace(' ', 'T') + 'Z').getTime();
-  return Math.max(0, Math.floor((toMs - fromMs) / (1000 * 60 * 60 * 24)));
-}
-
-export function addBatch(itemId: number, quantity: number, now: string): void {
+/** Must run on the same client/transaction as the item write it accompanies. */
+export async function addBatch(client: PoolClient, itemId: number, quantity: number, now: Date): Promise<void> {
   if (quantity <= 0) return;
-  db.prepare(
-    `INSERT INTO serving_batches (item_id, quantity, created_at) VALUES (?, ?, ?)`,
-  ).run(itemId, quantity, now);
+  await client.query('INSERT INTO serving_batches (item_id, quantity, created_at) VALUES ($1, $2, $3)', [
+    itemId,
+    quantity,
+    now,
+  ]);
 }
 
-export function removeFromBatches(
+/** Must run on the same client/transaction as the item write it accompanies. */
+export async function removeFromBatches(
+  client: PoolClient,
   itemId: number,
   quantity: number,
-  now: string,
+  now: Date,
   { log }: { log: boolean },
-): void {
+): Promise<void> {
   let remaining = quantity;
   if (remaining <= 0) return;
 
-  const batches = db
-    .prepare(
-      `SELECT id, quantity, created_at FROM serving_batches
-       WHERE item_id = ? ORDER BY created_at ASC, id ASC`,
-    )
-    .all(itemId) as { id: number; quantity: number; created_at: string }[];
-
-  const updateBatch = db.prepare('UPDATE serving_batches SET quantity = ? WHERE id = ?');
-  const deleteBatch = db.prepare('DELETE FROM serving_batches WHERE id = ?');
-  const insertEvent = db.prepare(
-    `INSERT INTO consumption_events (item_id, quantity, age_days, occurred_at) VALUES (?, ?, ?, ?)`,
+  const { rows: batches } = await client.query<{ id: number; quantity: number; created_at: Date }>(
+    `SELECT id, quantity, created_at FROM serving_batches
+     WHERE item_id = $1 ORDER BY created_at ASC, id ASC`,
+    [itemId],
   );
 
   for (const batch of batches) {
@@ -46,21 +39,26 @@ export function removeFromBatches(
     remaining -= taken;
 
     if (taken === batch.quantity) {
-      deleteBatch.run(batch.id);
+      await client.query('DELETE FROM serving_batches WHERE id = $1', [batch.id]);
     } else {
-      updateBatch.run(batch.quantity - taken, batch.id);
+      await client.query('UPDATE serving_batches SET quantity = $1 WHERE id = $2', [batch.quantity - taken, batch.id]);
     }
 
     if (log) {
-      insertEvent.run(itemId, taken, daysBetween(batch.created_at, now), now);
+      await client.query(
+        'INSERT INTO consumption_events (item_id, quantity, age_days, occurred_at) VALUES ($1, $2, $3, $4)',
+        [itemId, taken, daysBetween(new Date(batch.created_at), now), now],
+      );
     }
   }
 }
 
-export function getOldestBatchAgeDays(itemId: number, now: string): number | null {
-  const row = db
-    .prepare('SELECT MIN(created_at) AS oldest FROM serving_batches WHERE item_id = ?')
-    .get(itemId) as { oldest: string | null };
-  if (!row.oldest) return null;
-  return daysBetween(row.oldest, now);
+export async function getOldestBatchAgeDays(itemId: number, now: Date): Promise<number | null> {
+  const { rows } = await pool.query<{ oldest: Date | null }>(
+    'SELECT MIN(created_at) AS oldest FROM serving_batches WHERE item_id = $1',
+    [itemId],
+  );
+  const oldest = rows[0]?.oldest;
+  if (!oldest) return null;
+  return daysBetween(new Date(oldest), now);
 }
