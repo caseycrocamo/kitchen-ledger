@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Docker Compose env files (hold the Postgres password) — .env.example is the template
+.env
+
 # Backend package
 server/node_modules
 server/dist

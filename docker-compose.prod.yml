@@ -3,7 +3,7 @@ services:
     image: ghcr.io/caseycrocamo/kitchen-ledger-web:latest
     restart: unless-stopped
     ports:
-      - "8080:80"
+      - "${WEB_PORT:-8080}:80"
     depends_on:
       - api
 
@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
     environment:
       PORT: 3001
-      DATABASE_URL: postgres://kitchen:kitchen@db:5432/kitchen_ledger
+      DATABASE_URL: postgres://${POSTGRES_USER:-kitchen}:${POSTGRES_PASSWORD:-kitchen}@db:5432/${POSTGRES_DB:-kitchen_ledger}
       UPLOADS_DIR: /app/data/uploads
     volumes:
       - kitchen-data:/app/data
@@ -24,13 +24,13 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: kitchen
-      POSTGRES_PASSWORD: kitchen
-      POSTGRES_DB: kitchen_ledger
+      POSTGRES_USER: ${POSTGRES_USER:-kitchen}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kitchen}
+      POSTGRES_DB: ${POSTGRES_DB:-kitchen_ledger}
     volumes:
       - kitchen-db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U kitchen -d kitchen_ledger"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-kitchen} -d ${POSTGRES_DB:-kitchen_ledger}"]
       interval: 5s
       timeout: 5s
       retries: 10
